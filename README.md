@@ -16,3 +16,15 @@ Being that this would most likely be our first device at Muzzware it won't be us
  - Battery time improvements
 
  A major aim of making this device would be for it to use a 'kit' of electronics that can be purchased at any electronics store worldwide. A basic knowledge of arduinos and very little programming skills like C would be needed to do make this device though, but we'll be including our code here for you to try it out! 
+
+ Electronic parts to be used are as follows:
+ - 1x Arduino Micro
+ - 1x Buzzer speaker
+ - 1x Slide switch (for on and off)
+ - 2x Pushbuttons (I used large 12mm ones)
+ - 2x Resistors (I used 2k Ohm ones)
+ - 1x Quarter size proto board
+ - 2x Vibrating motors (this isn't completely required if you have a buzzer, but is highly recommended)
+ - 1x Distance sensor
+ - 9V Battery
+ - Wire
