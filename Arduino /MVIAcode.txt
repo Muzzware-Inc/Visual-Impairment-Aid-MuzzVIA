@@ -1,0 +1,176 @@
+// Code for an open-source visual impairment aid device by muzzware.inc
+// This should be implemented in the Arduino IDE
+
+int beepWait = 10, beepConst = 10, shortConst = 25, longConst = 10, beepLength = 50;
+int micPin = 9, on = 150, off = 0, volCount = 0;
+int volButton = 3, distButton = 4, volState = 0, distState = 0;
+int pingPin = 2, maxDist = 70, longDist = 70, shortDist = 30;
+int mGround = 11, m1 = 10, motorScale = 175, offset = 75;
+unsigned int duration, inches;
+boolean beepOn = true, vibrateOn = true;
+boolean longMode = true;
+int time;
+
+void setup()
+{
+  pinMode(micPin, OUTPUT);
+  pinMode(mGround, OUTPUT);
+  pinMode(m1, OUTPUT);
+  pinMode(volButton, INPUT);
+  pinMode(distButton, INPUT);
+  update();
+  beep();
+  delay(200);
+  time = millis();
+  Serial.begin(9600);
+}
+
+void loop()
+{
+  update();
+  if(vibrateOn)
+  {
+    pulse();
+  }
+  else
+  {
+    pulseOff();
+  }
+  if(beepOn)
+  {
+    beep();
+  }
+  //delay(beepWait);
+  wait();
+}
+
+void action()
+{
+}
+
+void beep()
+{
+   analogWrite(micPin, on);
+   delay(beepLength);
+   analogWrite(micPin, off);
+}
+
+void pulse()
+{
+    analogWrite(mGround, 0);
+    analogWrite(m1, offset + motorScale - inches * 1.0 * motorScale / maxDist);
+}
+
+void pulseOff()
+{
+  analogWrite(mGround, 0);
+  analogWrite(m1, 0);
+}
+
+void ping()
+{
+  pinMode(pingPin, OUTPUT);
+  digitalWrite(pingPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(pingPin, HIGH);
+  delayMicroseconds(5);
+  digitalWrite(pingPin, LOW);
+  pinMode(pingPin, INPUT);
+  duration = pulseIn(pingPin, HIGH);
+  inches = duration / 74 / 2;
+}
+
+void buttonCheck()
+{
+  volState = digitalRead(volButton);
+  distState = digitalRead(distButton);
+  if(volState == HIGH || distState == HIGH)
+  {
+    if(volState == HIGH && distState == HIGH)
+    {
+      distChange();
+      volChange();
+    }
+    else if (volState == HIGH)
+    {
+      volChange();
+    }
+    else
+    {
+      distChange();
+    }
+    while(volState == HIGH || distState == HIGH)
+    {
+      volState = digitalRead(volButton);
+      distState = digitalRead(distButton);
+      delay(1);
+    }
+  }
+}
+
+void volChange()
+{
+  if(volCount == 0)
+  {
+    vibrateOn = true;
+    beepOn = false;
+  }
+  else if(volCount == 1)
+  {
+    vibrateOn = false;
+    beepOn = true;
+  }
+  else
+  {
+    vibrateOn = true;
+    beepOn = true;
+  }
+  
+  volCount++;
+  if(volCount > 2)
+  {
+    volCount = 0;
+  }
+}
+
+void distChange()
+{
+  if(longMode)
+  {
+    longMode = false;
+    maxDist = shortDist;
+    beepConst = shortConst;
+  }
+  else
+  {
+    longMode = true;
+    maxDist = longDist;
+    beepConst = longConst;
+  }
+}
+
+void update()
+{
+  buttonCheck();
+  ping();
+  if(inches > maxDist)
+  {
+    inches = maxDist;
+  }
+  beepWait = inches * (1.0 * beepConst);
+}
+
+void wait()
+{
+  while(getTime() < beepWait)
+  {
+    delay(10);
+    buttonCheck();
+  }
+  time = millis();
+}
+
+int getTime()
+{
+  return millis() - time;
+}
